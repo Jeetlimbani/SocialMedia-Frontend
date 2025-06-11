@@ -1,18 +1,31 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Box, Paper, Tab, Tabs, Typography, CircularProgress, Alert, IconButton, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
+import React, { useState, useCallback } from 'react';
+import {
+  Box,
+  Paper,
+  Tab,
+  Tabs,
+  Typography,
+  CircularProgress,
+  Alert,
+  IconButton,
+  Menu,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+} from '@mui/material';
 import { MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
-  useDeletePostMutation,
-  useUpdatePostMutation,
-  useGetSavedPostsQuery 
-} from '../../features/profile/profileApi';
+import { useDeletePostMutation, useUpdatePostMutation } from '../../features/profile/profileApi';
 import { updatePostInState, removePost } from '../../features/profile/profileSlice';
 import PostCard from './PostCard';
 import CreatePostTab from './CreatePostTab';
 import SavedPosts from './SavedPosts';
 import Comments from './Comment';
-import ChatInterface from './ChatInterface'; // New chat component
+// New chat component
 import usePostActions from '../../hooks/usePostActions';
 
 const TabPanel = ({ children, value, index, ...other }) => (
@@ -35,7 +48,7 @@ const ProfileTabs = ({
   isLoading = false,
   error = null,
 }) => {
-  const currentUser = useSelector(state => state.auth.user);
+  const currentUser = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const { handleLike, handleSave, actionLoading } = usePostActions();
   const [deletePost, { isLoading: isDeletingPost }] = useDeletePostMutation();
@@ -54,7 +67,7 @@ const ProfileTabs = ({
     setSelectedPostForComments(post);
     setCommentsDialog(true);
   }, []);
-  
+
   const handleCloseComments = useCallback(() => {
     setCommentsDialog(false);
     setSelectedPostForComments(null);
@@ -91,68 +104,67 @@ const ProfileTabs = ({
     console.log('selectedPost:', selectedPost);
     console.log('editContent:', editContent);
     console.log('editContent.trim():', editContent.trim());
-    
+
     if (!selectedPost) {
       console.log('BLOCKED - No selected post');
       alert('No post selected for editing');
       return;
     }
-    
+
     if (!editContent.trim()) {
       console.log('BLOCKED - Empty content');
       alert('Content cannot be empty');
       return;
     }
-    
+
     if (editContent.length > 2000) {
       console.log('BLOCKED - Content too long');
       alert('Content exceeds 2000 characters');
       return;
     }
-   
+
     console.log('Starting edit submit for post:', selectedPost.id);
     console.log('Edit content:', editContent.trim());
-     
+
     try {
       const result = await updatePost({
         postId: selectedPost.id,
-        content: editContent.trim()
+        content: editContent.trim(),
       }).unwrap();
-     
+
       console.log('API Response result:', result);
       console.log('Type of result:', typeof result);
       console.log('Result keys:', Object.keys(result || {}));
-     
+
       const updatedPost = {
         ...selectedPost,
         content: editContent.trim(),
         updatedAt: new Date().toISOString(),
-        ...(result?.post || result || {})
+        ...(result?.post || result || {}),
       };
-      
+
       console.log('Dispatching updated post:', updatedPost);
       dispatch(updatePostInState(updatedPost));
-     
+
       console.log('Redux dispatch completed');
-     
+
       setEditDialog(false);
       setEditContent('');
       setSelectedPost(null);
-      
+
       console.log('Edit submit completed successfully');
       alert('Post updated successfully!');
-      
     } catch (error) {
       console.error('Error updating post:', error);
       console.log('Full error object:', error);
-      
+
       let errorMessage = 'Failed to update post. Please try again.';
       if (error?.data?.message) {
         errorMessage = error.data.message;
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       alert(errorMessage);
     }
   }, [selectedPost, editContent, updatePost, dispatch]);
@@ -232,30 +244,26 @@ const ProfileTabs = ({
     setSelectedPost(null);
   }, []);
 
-  const canEditPost = useCallback((post) => {
-    if (!currentUser || !post) {
-      return false;
-    }
+  const canEditPost = useCallback(
+    (post) => {
+      if (!currentUser || !post) {
+        return false;
+      }
 
-    const currentUserId = String(currentUser.id || currentUser._id);
-    const postAuthorId = String(
-      post.authorId ||
-      post.userId ||
-      post.author?.id ||
-      post.author?._id ||
-      post.createdBy ||
-      ''
-    );
+      const currentUserId = String(currentUser.id || currentUser._id);
+      const postAuthorId = String(
+        post.authorId || post.userId || post.author?.id || post.author?._id || post.createdBy || ''
+      );
 
-    return currentUserId === postAuthorId || isOwnProfile;
-  }, [currentUser, isOwnProfile]);
+      return currentUserId === postAuthorId || isOwnProfile;
+    },
+    [currentUser, isOwnProfile]
+  );
 
   if (error) {
     return (
       <Paper sx={{ borderRadius: 3, p: 3 }}>
-        <Alert severity="error">
-          {error.message || 'Failed to load posts'}
-        </Alert>
+        <Alert severity="error">{error.message || 'Failed to load posts'}</Alert>
       </Paper>
     );
   }
@@ -269,31 +277,26 @@ const ProfileTabs = ({
           sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}
         >
           <Tab label="Posts" />
-          <Tab label="Create Post"/>
+          <Tab label="Create Post" />
           <Tab label="Saved" />
           {/* Add Messages tab only for own profile */}
-          {isOwnProfile && <Tab label="Messages" />}
+          <Tab label="Messages" />
         </Tabs>
-        
+
         <TabPanel value={tabValue} index={1}>
-          <CreatePostTab 
+          <CreatePostTab
             onPostCreated={(newPost) => {
               console.log('New post created:', newPost);
             }}
             onTabChange={onTabChange}
           />
         </TabPanel>
-        
+
         <TabPanel value={tabValue} index={2}>
           <SavedPosts />
         </TabPanel>
 
         {/* Messages Tab - only show if own profile */}
-        {isOwnProfile && (
-          <TabPanel value={tabValue} index={3}>
-            <ChatInterface />
-          </TabPanel>
-        )}
 
         <TabPanel value={tabValue} index={0}>
           <Box sx={{ p: 2 }}>
@@ -317,21 +320,21 @@ const ProfileTabs = ({
                     />
 
                     {canEdit && (
-                       <IconButton
-                         onClick={(e) => handlePostMenuOpen(e, post)}
-                         sx={{
-                           position: 'absolute',
-                           top: 8,
-                           right: 8,
-                           backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                           '&:hover': {
-                             backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                           }
-                         }}
-                         size="small"
-                       >
-                         <MoreVertIcon />
-                       </IconButton>
+                      <IconButton
+                        onClick={(e) => handlePostMenuOpen(e, post)}
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          },
+                        }}
+                        size="small"
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
                     )}
                   </Box>
                 );
@@ -339,7 +342,7 @@ const ProfileTabs = ({
             ) : (
               <Box sx={{ textAlign: 'center', py: 8 }}>
                 <Typography variant="h6" color="text.secondary">
-                  {isOwnProfile ? 'You haven\'t posted anything yet' : 'No posts yet'}
+                  {isOwnProfile ? "You haven't posted anything yet" : 'No posts yet'}
                 </Typography>
                 {isOwnProfile && (
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -366,21 +369,14 @@ const ProfileTabs = ({
           horizontal: 'right',
         }}
       >
-        <MenuItem onClick={handleEditPost}>
-          Edit Post
-        </MenuItem>
+        <MenuItem onClick={handleEditPost}>Edit Post</MenuItem>
         <MenuItem onClick={handleDeletePost} sx={{ color: 'error.main' }}>
           Delete Post
         </MenuItem>
       </Menu>
 
       {/* Edit Post Dialog */}
-      <Dialog
-        open={editDialog}
-        onClose={handleEditCancel}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={editDialog} onClose={handleEditCancel} maxWidth="sm" fullWidth>
         <DialogTitle>Edit Post</DialogTitle>
         <DialogContent>
           <TextField
@@ -401,9 +397,7 @@ const ProfileTabs = ({
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleEditCancel}>
-            Cancel
-          </Button>
+          <Button onClick={handleEditCancel}>Cancel</Button>
           <Button
             onClick={() => {
               console.log('Update button clicked');
@@ -420,11 +414,7 @@ const ProfileTabs = ({
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialog}
-        onClose={handleDeleteCancel}
-        maxWidth="sm"
-      >
+      <Dialog open={deleteDialog} onClose={handleDeleteCancel} maxWidth="sm">
         <DialogTitle>Delete Post</DialogTitle>
         <DialogContent>
           <Typography>
@@ -443,10 +433,7 @@ const ProfileTabs = ({
           )}
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={handleDeleteCancel}
-            disabled={isDeletingPost}
-          >
+          <Button onClick={handleDeleteCancel} disabled={isDeletingPost}>
             Cancel
           </Button>
           <Button
@@ -479,4 +466,3 @@ const ProfileTabs = ({
 };
 
 export default ProfileTabs;
-

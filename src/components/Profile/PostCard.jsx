@@ -1,12 +1,6 @@
 // components/Profile/PostCard.jsx
 import React, { useState } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  IconButton,
-  Typography,
-} from '@mui/material';
+import { Box, Card, CardContent, IconButton, Typography } from '@mui/material';
 import {
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
@@ -16,26 +10,22 @@ import {
   Bookmark as BookmarkFilledIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
-} from "@mui/icons-material";
+} from '@mui/icons-material';
 
 // Component to display images with pagination
-const PostImagePagination = ({ images = [], baseUrl = "http://localhost:4000" }) => {
+const PostImagePagination = ({ images = [], baseUrl = 'http://localhost:4000' }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   if (!images || images.length === 0) return null;
 
   const handlePrevImage = (e) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => 
-      prev === 0 ? images.length - 1 : prev - 1
-    );
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const handleNextImage = (e) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => 
-      prev === images.length - 1 ? 0 : prev + 1
-    );
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   const handleDotClick = (index, e) => {
@@ -46,13 +36,15 @@ const PostImagePagination = ({ images = [], baseUrl = "http://localhost:4000" })
   return (
     <Box sx={{ position: 'relative', mb: 2 }}>
       {/* Main Image Container */}
-      <Box sx={{ 
-        width: '100%', 
-        maxHeight: 400, 
-        overflow: 'hidden', 
-        borderRadius: 2,
-        position: 'relative'
-      }}>
+      <Box
+        sx={{
+          width: '100%',
+          maxHeight: 400,
+          overflow: 'hidden',
+          borderRadius: 2,
+          position: 'relative',
+        }}
+      >
         <img
           src={`${baseUrl}${images[currentImageIndex]}`}
           alt={`Post image ${currentImageIndex + 1}`}
@@ -61,7 +53,7 @@ const PostImagePagination = ({ images = [], baseUrl = "http://localhost:4000" })
             height: '100%',
             maxHeight: '400px',
             objectFit: 'cover',
-            display: 'block'
+            display: 'block',
           }}
         />
 
@@ -80,7 +72,7 @@ const PostImagePagination = ({ images = [], baseUrl = "http://localhost:4000" })
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.7)',
                 },
-                zIndex: 1
+                zIndex: 1,
               }}
               size="small"
             >
@@ -99,7 +91,7 @@ const PostImagePagination = ({ images = [], baseUrl = "http://localhost:4000" })
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.7)',
                 },
-                zIndex: 1
+                zIndex: 1,
               }}
               size="small"
             >
@@ -107,17 +99,19 @@ const PostImagePagination = ({ images = [], baseUrl = "http://localhost:4000" })
             </IconButton>
 
             {/* Image Counter */}
-            <Box sx={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              backgroundColor: 'rgba(0, 0, 0, 0.6)',
-              color: 'white',
-              padding: '4px 8px',
-              borderRadius: 1,
-              fontSize: '0.75rem',
-              zIndex: 1
-            }}>
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: 1,
+                fontSize: '0.75rem',
+                zIndex: 1,
+              }}
+            >
               {currentImageIndex + 1} / {images.length}
             </Box>
           </>
@@ -126,13 +120,15 @@ const PostImagePagination = ({ images = [], baseUrl = "http://localhost:4000" })
 
       {/* Pagination Dots - Only show if more than 1 image */}
       {images.length > 1 && (
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          mt: 1,
-          gap: 0.5
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            mt: 1,
+            gap: 0.5,
+          }}
+        >
           {images.map((_, index) => (
             <Box
               key={index}
@@ -141,16 +137,14 @@ const PostImagePagination = ({ images = [], baseUrl = "http://localhost:4000" })
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                backgroundColor: index === currentImageIndex 
-                  ? 'primary.main' 
-                  : 'rgba(0, 0, 0, 0.3)',
+                backgroundColor:
+                  index === currentImageIndex ? 'primary.main' : 'rgba(0, 0, 0, 0.3)',
                 cursor: 'pointer',
                 transition: 'background-color 0.2s ease',
                 '&:hover': {
-                  backgroundColor: index === currentImageIndex 
-                    ? 'primary.dark' 
-                    : 'rgba(0, 0, 0, 0.5)',
-                }
+                  backgroundColor:
+                    index === currentImageIndex ? 'primary.dark' : 'rgba(0, 0, 0, 0.5)',
+                },
               }}
             />
           ))}
@@ -164,12 +158,10 @@ const PostCard = ({ post, onLike, onComment, onSave, showActions = true }) => {
   // Safely access nested properties with fallbacks
   const likesCount = post?.likesCount || post?._count?.likes || 0;
   const commentsCount =
-  post?.commentsCount !== undefined
-    ? post.commentsCount
-    : post?._count?.comments || 0;
+    post?.commentsCount !== undefined ? post.commentsCount : post?._count?.comments || 0;
 
-  const isLiked = Boolean(post?.isLiked);
-  const isSaved = Boolean(post?.isSaved);
+  const isLiked = post?.isLiked;
+  const isSaved = post?.isSaved;
 
   const handleLike = (e) => {
     e.stopPropagation();
@@ -217,16 +209,14 @@ const PostCard = ({ post, onLike, onComment, onSave, showActions = true }) => {
         <Typography variant="body1" sx={{ mb: 2, whiteSpace: 'pre-wrap' }}>
           {post.content}
         </Typography>
-        
+
         {/* Post images with pagination */}
-        {post.images && post.images.length > 0 && (
-          <PostImagePagination images={post.images} />
-        )}
+        {post.images && post.images.length > 0 && <PostImagePagination images={post.images} />}
 
         {/* Action buttons */}
         {showActions && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton 
+            <IconButton
               onClick={handleLike}
               color={isLiked ? 'error' : 'default'}
               size="small"
@@ -237,19 +227,15 @@ const PostCard = ({ post, onLike, onComment, onSave, showActions = true }) => {
             <Typography variant="body2" color="text.secondary">
               {likesCount}
             </Typography>
-            
-            <IconButton 
-              onClick={handleComment} 
-              size="small"
-              disabled={!onComment}
-            >
+
+            <IconButton onClick={handleComment} size="small" disabled={!onComment}>
               <CommentIcon />
             </IconButton>
             <Typography variant="body2" color="text.secondary">
               {commentsCount}
             </Typography>
-            
-            <IconButton 
+
+            <IconButton
               onClick={handleSave}
               color={isSaved ? 'primary' : 'default'}
               size="small"
@@ -257,10 +243,10 @@ const PostCard = ({ post, onLike, onComment, onSave, showActions = true }) => {
             >
               {isSaved ? <BookmarkFilledIcon /> : <BookmarkIcon />}
             </IconButton>
-            
-            <IconButton size="small" sx={{ ml: 'auto' }}>
+
+            {/* <IconButton size="small" sx={{ ml: 'auto' }}>
               <ShareIcon />
-            </IconButton>
+            </IconButton> */}
           </Box>
         )}
       </CardContent>

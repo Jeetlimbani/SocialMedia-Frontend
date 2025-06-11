@@ -1,15 +1,3 @@
-// import React from 'react';
-
-// function Home() {
-//   return (
-//     <div>
-//       <h1>Welcome to the Social Media Platform!</h1>
-//       <p>This is the public home page.</p>
-//     </div>
-//   );
-// }
-
-// export default Home;
 import React from 'react';
 import {
   Box,
@@ -24,17 +12,9 @@ import {
   Chip,
   Stack,
 } from '@mui/material';
-import {
-  People,
-  Chat,
-  Share,
-  Security,
-  Speed,
-  Favorite,
-} from '@mui/icons-material';
+import { People, Chat, Share, Security, Speed, Favorite } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
 
 const features = [
   {
@@ -70,9 +50,8 @@ const features = [
 ];
 
 function Home() {
- 
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth); 
+  const { user } = useSelector((state) => state.auth);
 
   return (
     <Container maxWidth="lg">
@@ -93,11 +72,19 @@ function Home() {
         <Typography variant="h5" component="p" sx={{ mb: 4, opacity: 0.9 }}>
           Connect, share, and discover amazing content with friends and communities
         </Typography>
-        
+
         <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 4 }}>
           <Chip label="🚀 Fast" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
-          <Chip label="🔒 Secure" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
-          <Chip label="🌍 Global" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
+          <Chip
+            label="🔒 Secure"
+            variant="outlined"
+            sx={{ color: 'white', borderColor: 'white' }}
+          />
+          <Chip
+            label="🌍 Global"
+            variant="outlined"
+            sx={{ color: 'white', borderColor: 'white' }}
+          />
         </Stack>
 
         {!user ? (
@@ -140,7 +127,7 @@ function Home() {
           <Button
             variant="contained"
             size="large"
-            onClick={() => navigate(`/profile/${user?.username}`)} 
+            onClick={() => navigate(`/profile/${user?.username}`)}
             sx={{
               bgcolor: 'white',
               color: 'primary.main',
@@ -168,45 +155,38 @@ function Home() {
         >
           Why Choose Our Platform?
         </Typography>
-        <Typography
-          variant="h6"
-          textAlign="center"
-          color="text.secondary"
-          sx={{ mb: 6 }}
-        >
+        <Typography variant="h6" textAlign="center" color="text.secondary" sx={{ mb: 6 }}>
           Discover the features that make us unique
         </Typography>
 
         <Grid container spacing={4}>
-  {features.map((feature, index) => (
-    <Grid item xs={12} sm={6} md={4} key={index}>
-      <Card
-        sx={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-          '&:hover': {
-            transform: 'translateY(-8px)',
-            boxShadow: 4,
-          },
-        }}
-      >
-        <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
-          <Box sx={{ mb: 2 }}>
-            {feature.icon}
-          </Box>
-          <Typography variant="h6" component="h3" gutterBottom fontWeight="bold">
-            {feature.title}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {feature.description}
-          </Typography>
-        </CardContent>
-      </Card>
-    </Grid>
-  ))}
-</Grid>
+          {features.map((feature, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Card
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: 4,
+                  },
+                }}
+              >
+                <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
+                  <Box sx={{ mb: 2 }}>{feature.icon}</Box>
+                  <Typography variant="h6" component="h3" gutterBottom fontWeight="bold">
+                    {feature.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {feature.description}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
       </Box>
 
       {/* Stats Section */}

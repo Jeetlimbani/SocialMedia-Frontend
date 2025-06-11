@@ -9,9 +9,6 @@ const PublicRoute = ({ children }) => {
   if (isLoading) {
     return <div>Loading...</div>; // Or your loading component
   }
-
-  // If user is logged in, redirect to their profile
-  // Otherwise, render the public page (login, register, etc.)
   return user ? <Navigate to={`/profile/${user.username}`} replace /> : children;
 };
 

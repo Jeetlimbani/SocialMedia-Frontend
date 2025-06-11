@@ -1,5 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createSlice } from '@reduxjs/toolkit';
 import { apiSlice } from '../api/apiSlice'; // Import apiSlice
 
 // Backend Base URL
@@ -28,11 +27,11 @@ export const authApiSlice = apiSlice.injectEndpoints({
       }),
     }),
     activateAccount: builder.mutation({
-        query: (tokenData) => ({
-            url: `${API_URL}activate`,
-            method: 'POST',
-            body: tokenData,
-        }),
+      query: (tokenData) => ({
+        url: `${API_URL}activate`,
+        method: 'POST',
+        body: tokenData,
+      }),
     }),
     login: builder.mutation({
       query: (credentials) => ({
@@ -51,7 +50,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
           // Update Redux state directly with the logged-in user
           dispatch(setUser(data.user)); // Dispatch action to update state
         } catch (error) {
-          console.error("Login failed:", error);
+          console.error('Login failed:', error);
           // Handle error in component, mutation hook will expose it
         }
       },
@@ -70,7 +69,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
           localStorage.removeItem('refreshToken');
           dispatch(logoutUser()); // Dispatch action to clear state
         } catch (error) {
-          console.error("Logout failed:", error);
+          console.error('Logout failed:', error);
         }
       },
     }),
@@ -100,7 +99,6 @@ export const {
   useForgotPasswordMutation,
   useResetPasswordMutation,
 } = authApiSlice;
-
 
 // --- Regular Redux Slice (for managing user state, not API calls) ---
 const authSlice = createSlice({

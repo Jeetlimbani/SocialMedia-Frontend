@@ -1,239 +1,12 @@
-// // features/api/profileSlice.js
-// import { createSlice } from '@reduxjs/toolkit';
-// import { apiSlice } from '../api/apiSlice';
-
-// // --- RTK Query Endpoints for Profile ---
-// export const profileApi = apiSlice.injectEndpoints({
-//   endpoints: (builder) => ({
-//     getUserProfile: builder.query({
-//       query: (identifier) => (
-//         {
-//         url: `/profile/${identifier}`,  
-//         method: 'GET',
-//       }),
-//       providesTags: (result, error, identifier) => [
-//         { type: 'Profile', id: identifier },
-//         { type: 'Profile', id: 'LIST' }
-//       ],
-//       // Use onQueryStarted to dispatch the fetched data to the regular Redux slice
-//       async onQueryStarted(identifier, { queryFulfilled, dispatch }) {
-//         try {
-//           const { data } = await queryFulfilled;
-//           // Dispatch action to the new profileSlice to store the viewed profile
-//           dispatch(setViewedProfile(data));
-//         } catch (error) {
-//           console.error("Failed to fetch profile (onQueryStarted):", error);
-//         }
-//       },
-//     }),
-
-//     getCurrentUserProfile: builder.query({
-//       query: () => ({
-//         url: '/profile/me/profile',
-//         method: 'GET',
-//       }),
-//       providesTags: [{ type: 'Profile', id: 'CURRENT' }],
-//       // Use onQueryStarted to dispatch the fetched data to the regular Redux slice
-//       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
-//         try {
-//           const { data } = await queryFulfilled;
-//           // Dispatch action to store the current user's profile globally
-//           dispatch(setCurrentUserProfile(data));
-//         } catch (error) {
-//           console.error("Failed to fetch current profile (onQueryStarted):", error);
-//         }
-//       },
-//     }),
-
-//     updateUserProfile: builder.mutation({
-//       query: (profileData) => ({
-//         url: '/profile/update',
-//         method: 'PUT',
-//         body: profileData,
-//       }),
-//       invalidatesTags: [
-//         { type: 'Profile', id: 'CURRENT' },
-//         { type: 'Profile', id: 'LIST' }
-//       ],
-//       // After successful update, refetch the current user's profile to update the slice state
-//       async onQueryStarted(profileData, { queryFulfilled, dispatch }) {
-//         try {
-//           const { data } = await queryFulfilled;
-//           dispatch(setCurrentUserProfile(data)); // Update current user profile in slice
-//           dispatch(setViewedProfile(data)); // Also update viewed profile if it's the current user
-//         } catch (error) {
-//           console.error("Failed to update profile (onQueryStarted):", error);
-//         }
-//       },
-//     }),
-
-//     uploadAvatar: builder.mutation({
-//       query: (formData) => ({
-//         url: '/profile/avatar',
-//         method: 'POST',
-//         body: formData,
-//       }),
-//       invalidatesTags: [
-//         { type: 'Profile', id: 'CURRENT' },
-//         { type: 'Profile', id: 'LIST' }
-//       ],
-//       // After successful avatar upload, update the Redux state with the correct data
-//       async onQueryStarted(formData, { queryFulfilled, dispatch }) {
-//         try {
-//           const { data } = await queryFulfilled;
-//           // The backend returns { message, user }, so we need data.user
-//           dispatch(setCurrentUserProfile(data.user)); // Use data.user instead of data
-//           dispatch(setViewedProfile(data.user)); // Use data.user instead of data
-//         } catch (error) {
-//           console.error("Failed to upload avatar (onQueryStarted):", error);
-//         }
-//       },
-//     }),
-
-//     followUser: builder.mutation({
-//       query: (userId) => ({
-//         url: `/profile/follow/${userId}`,
-//         method: 'POST',
-//       }),
-//       invalidatesTags: (result, error, userId) => [
-//         { type: 'Profile', id: userId },
-//         { type: 'Profile', id: 'LIST' },
-//         { type: 'Follow', id: 'FOLLOWERS' },
-//         { type: 'Follow', id: 'FOLLOWING' },
-//         { type: 'Follow', id: 'LIST' }
-//       ],
-//       // Optimistic update for better UX
-//       async onQueryStarted(userId, { dispatch, queryFulfilled }) {
-//         try {
-//           await queryFulfilled;
-//           // The invalidation will handle refetching
-//         } catch (error) {
-//           console.error("Follow user error:", error);
-//         }
-//       },
-//     }),
-
-//     unfollowUser: builder.mutation({
-//       query: (userId) => ({
-//         url: `/profile/follow/${userId}`,
-//         method: 'DELETE',
-//       }),
-//       invalidatesTags: (result, error, userId) => [
-//         { type: 'Profile', id: userId },
-//         { type: 'Profile', id: 'LIST' },
-//         { type: 'Follow', id: 'FOLLOWERS' },
-//         { type: 'Follow', id: 'FOLLOWING' },
-//         { type: 'Follow', id: 'LIST' }
-//       ],
-//       // Optimistic update for better UX
-//       async onQueryStarted(userId, { dispatch, queryFulfilled }) {
-//         try {
-//           await queryFulfilled;
-//           // The invalidation will handle refetching
-//         } catch (error) {
-//           console.error("Unfollow user error:", error);
-//         }
-//       },
-//     }),
-
-//     getFollowers: builder.query({
-//       query: ({ userId, page = 1, limit = 20, search = '' }) => {
-//         let url = `/profile/${userId}/followers?page=${page}&limit=${limit}`;
-//         if (search) {
-//           url += `&search=${encodeURIComponent(search)}`;
-//         }
-//         return {
-//           url,
-//           method: 'GET',
-//         };
-//       },
-//       providesTags: (result, error, { userId, page, search }) => [
-//         { type: 'Follow', id: 'FOLLOWERS' },
-//         { type: 'Follow', id: `FOLLOWERS-${userId}-${page}-${search}` }
-//       ],
-//       // Keep previous data while fetching new data for better UX
-//       keepUnusedDataFor: 60, // 60 seconds
-//     }),
-
-//     getFollowing: builder.query({
-//       query: ({ userId, page = 1, limit = 20, search = '' }) => {
-//         let url = `/profile/${userId}/following?page=${page}&limit=${limit}`;
-//         if (search) {
-//           url += `&search=${encodeURIComponent(search)}`;
-//         }
-//         return {
-//           url,
-//           method: 'GET',
-//         };
-//       },
-//       providesTags: (result, error, { userId, page, search }) => [
-//         { type: 'Follow', id: 'FOLLOWING' },
-//         { type: 'Follow', id: `FOLLOWING-${userId}-${page}-${search}` }
-//       ],
-//       // Keep previous data while fetching new data for better UX
-//       keepUnusedDataFor: 60, // 60 seconds
-//     }),
-
-//     searchUsers: builder.query({
-//       query: ({ query, page = 1, limit = 20 }) => ({
-//         url: `/profile/search/users?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`,
-//         method: 'GET',  
-//       }),
-//       providesTags: [{ type: 'Profile', id: 'SEARCH' }],
-//     }),
-//   }),
-// });
-
-// export const {
-//   useGetUserProfileQuery,
-//   useGetCurrentUserProfileQuery,
-//   useUpdateUserProfileMutation,
-//   useUploadAvatarMutation,
-//   useFollowUserMutation,
-//   useUnfollowUserMutation,
-//   useGetFollowersQuery,
-//   useGetFollowingQuery,
-//   useSearchUsersQuery,
-// } = profileApi;
-
-// // --- Redux Toolkit Slice for Profile-Related State ---
-// const initialState = {
-//   viewedProfile: null, // Stores the profile data of the user currently being viewed
-//   currentUserProfile: null, // Stores the profile data of the authenticated user
-// };
-
-// const profileSlice = createSlice({
-//   name: 'profile',
-//   initialState,
-//   reducers: {
-//     setViewedProfile: (state, action) => {
-//       state.viewedProfile = action.payload;
-//     },
-//     clearViewedProfile: (state) => {
-//       state.viewedProfile = null;
-//     },
-//     setCurrentUserProfile: (state, action) => {
-//       state.currentUserProfile = action.payload;
-//     },
-//     clearCurrentUserProfile: (state) => {
-//       state.currentUserProfile = null;
-//     },
-//   },
-// });
-
-// export const { setViewedProfile, clearViewedProfile, setCurrentUserProfile, clearCurrentUserProfile } = profileSlice.actions;
-
-// export default profileSlice.reducer;
-// features/api/profileSlice.js
-
-
-// src/features/profile/profileSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   viewedProfile: null,
   currentUserProfile: null,
-  posts: [],
+  posts: [], // General posts array (e.g., for profile feed)
+  feedPosts: [], // Posts for the main feed
+  userPosts: [], // Posts by the current user
+  savedPosts: [], // Saved posts (objects with { id, post, savedAt, ... })
   feedPagination: {
     page: 1,
     hasMore: true,
@@ -266,203 +39,288 @@ const profileSlice = createSlice({
       state.feedPagination.page += 1;
     },
     addPost: (state, action) => {
-      state.posts.unshift(action.payload);
-    },
+      const newPost = action.payload;
+      // Add to general posts array
+      state.posts.unshift(newPost);
 
+      // Add to feedPosts if applicable
+      if (state.feedPosts) {
+        state.feedPosts.unshift(newPost);
+      }
+
+      // Add to userPosts if the post belongs to the current user
+      if (
+        state.currentUserProfile &&
+        (newPost.authorId === state.currentUserProfile.id ||
+          newPost.userId === state.currentUserProfile.id ||
+          newPost.author?.id === state.currentUserProfile.id)
+      ) {
+        state.userPosts = state.userPosts || [];
+        state.userPosts.unshift(newPost);
+      }
+
+      // Add to currentUserProfile.posts if applicable
+      if (
+        state.currentUserProfile &&
+        state.currentUserProfile.posts &&
+        (newPost.authorId === state.currentUserProfile.id ||
+          newPost.userId === state.currentUserProfile.id ||
+          newPost.author?.id === state.currentUserProfile.id)
+      ) {
+        state.currentUserProfile.posts.unshift(newPost);
+      }
+
+      // Add to viewedProfile.posts if the viewed profile is the post author
+      if (
+        state.viewedProfile &&
+        state.viewedProfile.posts &&
+        (newPost.authorId === state.viewedProfile.id ||
+          newPost.userId === state.viewedProfile.id ||
+          newPost.author?.id === state.viewedProfile.id)
+      ) {
+        state.viewedProfile.posts.unshift(newPost);
+      }
+    },
     togglePostLike: (state, action) => {
       const { postId, isLiked, likesCount } = action.payload;
-      
-      // Find post in all possible locations
-      const updatePost = (post) => {
-        if (post && post.id === postId) {
-          post.isLiked = isLiked;
-          
-          // Only update likesCount if it's explicitly provided and not null
-          if (likesCount !== null && likesCount !== undefined) {
-            post.likesCount = likesCount;
-          }
-          return true;
-        }
-        return false;
-      };
-    
-      // Update in posts array
-      if (state.posts) {
-        state.posts.forEach(updatePost);
+
+      // Helper to update a direct post
+      const updateDirectPost = (post) =>
+        post && (post.id === postId || post._id === postId)
+          ? {
+              ...post,
+              isLiked,
+              likesCount:
+                likesCount !== null && likesCount !== undefined ? likesCount : post.likesCount,
+            }
+          : post;
+
+      // Helper to update a saved post
+      const updateSavedPost = (savedPost) =>
+        savedPost.post && (savedPost.post.id === postId || savedPost.post._id === postId)
+          ? {
+              ...savedPost,
+              post: {
+                ...savedPost.post,
+                isLiked,
+                likesCount:
+                  likesCount !== null && likesCount !== undefined
+                    ? likesCount
+                    : savedPost.post.likesCount,
+              },
+            }
+          : savedPost;
+
+      // Update all relevant arrays
+      state.posts = state.posts?.map(updateDirectPost) || [];
+      state.feedPosts = state.feedPosts?.map(updateDirectPost) || [];
+      state.userPosts = state.userPosts?.map(updateDirectPost) || [];
+      state.savedPosts = state.savedPosts?.map(updateSavedPost) || [];
+      if (state.viewedProfile?.posts) {
+        state.viewedProfile.posts = state.viewedProfile.posts.map(updateDirectPost);
       }
-      
-      // Update in feed posts if they exist
-      if (state.feedPosts) {
-        state.feedPosts.forEach(updatePost);
-      }
-      
-      // Update in user posts if they exist
-      if (state.userPosts) {
-        state.userPosts.forEach(updatePost);
-      }
-      
-      // Update in viewed profile posts if they exist
-      if (state.viewedProfile && state.viewedProfile.posts) {
-        state.viewedProfile.posts.forEach(updatePost);
-      }
-      
-      // Update in current user profile posts if they exist
-      if (state.currentUserProfile && state.currentUserProfile.posts) {
-        state.currentUserProfile.posts.forEach(updatePost);
+      if (state.currentUserProfile?.posts) {
+        state.currentUserProfile.posts = state.currentUserProfile.posts.map(updateDirectPost);
       }
     },
-    
-    // Fixed togglePostSave reducer
     togglePostSave: (state, action) => {
       const { postId, isSaved } = action.payload;
-      
-      // Find post in all possible locations
-      const updatePost = (post) => {
-        if (post && post.id === postId) {
-          post.isSaved = isSaved;
-          return true;
+
+      // Helper to update a post's isSaved status
+      const updatePost = (post) =>
+        post && (post.id === postId || post._id === postId) ? { ...post, isSaved } : post;
+
+      // Helper to update a saved post
+      const updateSavedPost = (savedPost) =>
+        savedPost.post && (savedPost.post.id === postId || savedPost.post._id === postId)
+          ? { ...savedPost, post: { ...savedPost.post, isSaved } }
+          : savedPost;
+
+      // Update all relevant arrays
+      state.posts = state.posts?.map(updatePost) || [];
+      state.feedPosts = state.feedPosts?.map(updatePost) || [];
+      state.userPosts = state.userPosts?.map(updatePost) || [];
+      state.savedPosts = state.savedPosts?.map(updateSavedPost) || [];
+      if (state.viewedProfile?.posts) {
+        state.viewedProfile.posts = state.viewedProfile.posts.map(updatePost);
+      }
+      if (state.currentUserProfile?.posts) {
+        state.currentUserProfile.posts = state.currentUserProfile.posts.map(updatePost);
+      }
+
+      // If saving, add to savedPosts if not already present
+      if (isSaved) {
+        const postToSave = [
+          ...state.posts,
+          ...state.feedPosts,
+          ...state.userPosts,
+          ...(state.viewedProfile?.posts || []),
+          ...(state.currentUserProfile?.posts || []),
+        ].find((post) => post && (post.id === postId || post._id === postId));
+        if (postToSave && !state.savedPosts.some((sp) => sp.post.id === postId)) {
+          state.savedPosts.push({
+            id: `saved-${postId}`,
+            post: { ...postToSave, isSaved: true },
+            savedAt: new Date().toISOString(),
+          });
         }
-        return false;
-      };
-    
-      // Update in posts array
-      if (state.posts) {
-        state.posts.forEach(updatePost);
-      }
-      
-      // Update in feed posts if they exist
-      if (state.feedPosts) {
-        state.feedPosts.forEach(updatePost);
-      }
-      
-      // Update in user posts if they exist
-      if (state.userPosts) {
-        state.userPosts.forEach(updatePost);
-      }
-      
-      // Update in viewed profile posts if they exist
-      if (state.viewedProfile && state.viewedProfile.posts) {
-        state.viewedProfile.posts.forEach(updatePost);
-      }
-      
-      // Update in current user profile posts if they exist
-      if (state.currentUserProfile && state.currentUserProfile.posts) {
-        state.currentUserProfile.posts.forEach(updatePost);
+      } else {
+        // If un-saving, remove from savedPosts
+        state.savedPosts = state.savedPosts.filter(
+          (sp) => !(sp.post.id === postId || sp.post._id === postId)
+        );
       }
     },
-    
-    // Additional helper reducer to update post content
     updatePostInState: (state, action) => {
       const updatedPost = action.payload;
-      
-      const updatePost = (post) => {
-        if (post && post.id === updatedPost.id) {
-          Object.assign(post, updatedPost);
-          return true;
-        }
-        return false;
-      };
-    
-      // Update in all possible locations
-      if (state.posts) {
-        state.posts.forEach(updatePost);
+
+      // Helper to update a post
+      const updatePost = (post) =>
+        post && (post.id === updatedPost.id || post._id === updatedPost.id)
+          ? { ...post, ...updatedPost }
+          : post;
+
+      // Helper to update a saved post
+      const updateSavedPost = (savedPost) =>
+        savedPost.post &&
+        (savedPost.post.id === updatedPost.id || savedPost.post._id === updatedPost.id)
+          ? { ...savedPost, post: { ...savedPost.post, ...updatedPost } }
+          : savedPost;
+
+      // Update all relevant arrays
+      state.posts = state.posts?.map(updatePost) || [];
+      state.feedPosts = state.feedPosts?.map(updatePost) || [];
+      state.userPosts = state.userPosts?.map(updatePost) || [];
+      state.savedPosts = state.savedPosts?.map(updateSavedPost) || [];
+      if (state.viewedProfile?.posts) {
+        state.viewedProfile.posts = state.viewedProfile.posts.map(updatePost);
       }
-      
-      if (state.feedPosts) {
-        state.feedPosts.forEach(updatePost);
-      }
-      
-      if (state.userPosts) {
-        state.userPosts.forEach(updatePost);
-      }
-      
-      if (state.viewedProfile && state.viewedProfile.posts) {
-        state.viewedProfile.posts.forEach(updatePost);
-      }
-      
-      if (state.currentUserProfile && state.currentUserProfile.posts) {
-        state.currentUserProfile.posts.forEach(updatePost);
+      if (state.currentUserProfile?.posts) {
+        state.currentUserProfile.posts = state.currentUserProfile.posts.map(updatePost);
       }
     },
-  
-    // Updated increment/decrement comment count actions
     incrementCommentCount: (state, action) => {
       const postId = action.payload;
-      
+
+      // Helper to update comment count
       const updatePost = (post) => {
         if (post && (post.id === postId || post._id === postId)) {
-          const currentCount = post.commentsCount !== undefined 
-            ? post.commentsCount 
-            : post._count?.comments || 0;
-          
-          post.commentsCount = currentCount + 1;
-          
-          // Also update _count if it exists
-          if (post._count) {
-            post._count.comments = post.commentsCount;
-          }
+          const currentCount =
+            post.commentsCount !== undefined ? post.commentsCount : post._count?.comments || 0;
+          return {
+            ...post,
+            commentsCount: currentCount + 1,
+            _count: post._count ? { ...post._count, comments: currentCount + 1 } : post._count,
+          };
         }
+        return post;
       };
-    
-      // Update all sources
-      [state.posts, state.feedPosts, state.userPosts].forEach(arr => {
-        if (arr) arr.forEach(updatePost);
-      });
-    
-      if (state.viewedProfile?.posts) state.viewedProfile.posts.forEach(updatePost);
-      if (state.currentUserProfile?.posts) state.currentUserProfile.posts.forEach(updatePost);
+
+      // Helper to update saved post
+      const updateSavedPost = (savedPost) => {
+        if (savedPost.post && (savedPost.post.id === postId || savedPost.post._id === postId)) {
+          const currentCount =
+            savedPost.post.commentsCount !== undefined
+              ? savedPost.post.commentsCount
+              : savedPost.post._count?.comments || 0;
+          return {
+            ...savedPost,
+            post: {
+              ...savedPost.post,
+              commentsCount: currentCount + 1,
+              _count: savedPost.post._count
+                ? { ...savedPost.post._count, comments: currentCount + 1 }
+                : savedPost.post._count,
+            },
+          };
+        }
+        return savedPost;
+      };
+
+      // Update all relevant arrays
+      state.posts = state.posts?.map(updatePost) || [];
+      state.feedPosts = state.feedPosts?.map(updatePost) || [];
+      state.userPosts = state.userPosts?.map(updatePost) || [];
+      state.savedPosts = state.savedPosts?.map(updateSavedPost) || [];
+      if (state.viewedProfile?.posts) {
+        state.viewedProfile.posts = state.viewedProfile.posts.map(updatePost);
+      }
+      if (state.currentUserProfile?.posts) {
+        state.currentUserProfile.posts = state.currentUserProfile.posts.map(updatePost);
+      }
     },
-    
     decrementCommentCount: (state, action) => {
       const postId = action.payload;
-    
+
+      // Helper to update comment count
       const updatePost = (post) => {
         if (post && (post.id === postId || post._id === postId)) {
-          const currentCount = post.commentsCount !== undefined 
-            ? post.commentsCount 
-            : post._count?.comments || 0;
-          
-          post.commentsCount = Math.max(currentCount - 1, 0);
-          
-          // Also update _count if it exists
-          if (post._count) {
-            post._count.comments = post.commentsCount;
-          }
+          const currentCount =
+            post.commentsCount !== undefined ? post.commentsCount : post._count?.comments || 0;
+          const newCount = Math.max(currentCount - 1, 0);
+          return {
+            ...post,
+            commentsCount: newCount,
+            _count: post._count ? { ...post._count, comments: newCount } : post._count,
+          };
         }
+        return post;
       };
-    
-      // Update all sources
-      [state.posts, state.feedPosts, state.userPosts].forEach(arr => {
-        if (arr) arr.forEach(updatePost);
-      });
-    
-      if (state.viewedProfile?.posts) state.viewedProfile.posts.forEach(updatePost);
-      if (state.currentUserProfile?.posts) state.currentUserProfile.posts.forEach(updatePost);
+
+      // Helper to update saved post
+      const updateSavedPost = (savedPost) => {
+        if (savedPost.post && (savedPost.post.id === postId || savedPost.post._id === postId)) {
+          const currentCount =
+            savedPost.post.commentsCount !== undefined
+              ? savedPost.post.commentsCount
+              : savedPost.post._count?.comments || 0;
+          const newCount = Math.max(currentCount - 1, 0);
+          return {
+            ...savedPost,
+            post: {
+              ...savedPost.post,
+              commentsCount: newCount,
+              _count: savedPost.post._count
+                ? { ...savedPost.post._count, comments: newCount }
+                : savedPost.post._count,
+            },
+          };
+        }
+        return savedPost;
+      };
+
+      // Update all relevant arrays
+      state.posts = state.posts?.map(updatePost) || [];
+      state.feedPosts = state.feedPosts?.map(updatePost) || [];
+      state.userPosts = state.userPosts?.map(updatePost) || [];
+      state.savedPosts = state.savedPosts?.map(updateSavedPost) || [];
+      if (state.viewedProfile?.posts) {
+        state.viewedProfile.posts = state.viewedProfile.posts.map(updatePost);
+      }
+      if (state.currentUserProfile?.posts) {
+        state.currentUserProfile.posts = state.currentUserProfile.posts.map(updatePost);
+      }
     },
-    
-    // Fixed removePost reducer
     removePost: (state, action) => {
       const postId = action.payload;
-      
-      // Remove from all possible locations
-      if (state.posts) {
-        state.posts = state.posts.filter(post => post.id !== postId);
+
+      // Filter out the post from all relevant arrays
+      state.posts = state.posts?.filter((post) => post.id !== postId && post._id !== postId) || [];
+      state.feedPosts =
+        state.feedPosts?.filter((post) => post.id !== postId && post._id !== postId) || [];
+      state.userPosts =
+        state.userPosts?.filter((post) => post.id !== postId && post._id !== postId) || [];
+      state.savedPosts =
+        state.savedPosts?.filter((sp) => !(sp.post.id === postId || sp.post._id === postId)) || [];
+      if (state.viewedProfile?.posts) {
+        state.viewedProfile.posts = state.viewedProfile.posts.filter(
+          (post) => post.id !== postId && post._id !== postId
+        );
       }
-      
-      if (state.feedPosts) {
-        state.feedPosts = state.feedPosts.filter(post => post.id !== postId);
-      }
-      
-      if (state.userPosts) {
-        state.userPosts = state.userPosts.filter(post => post.id !== postId);
-      }
-      
-      if (state.viewedProfile && state.viewedProfile.posts) {
-        state.viewedProfile.posts = state.viewedProfile.posts.filter(post => post.id !== postId);
-      }
-      
-      if (state.currentUserProfile && state.currentUserProfile.posts) {
-        state.currentUserProfile.posts = state.currentUserProfile.posts.filter(post => post.id !== postId);
+      if (state.currentUserProfile?.posts) {
+        state.currentUserProfile.posts = state.currentUserProfile.posts.filter(
+          (post) => post.id !== postId && post._id !== postId
+        );
       }
     },
     setFeedLoading: (state, action) => {
@@ -473,6 +331,7 @@ const profileSlice = createSlice({
     },
     resetFeed: (state) => {
       state.posts = [];
+      state.feedPosts = [];
       state.feedPagination = { page: 1, hasMore: true, loading: false };
     },
   },
@@ -488,7 +347,6 @@ export const {
   addPost,
   updatePostInState,
   removePost,
- 
   incrementCommentCount,
   decrementCommentCount,
   togglePostLike,
